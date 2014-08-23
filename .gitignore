@@ -54,3 +54,6 @@ docs/_build/
 
 # Data files
 data/*.draft
+data/*.txt
+data/*.csv
+db/*.db
