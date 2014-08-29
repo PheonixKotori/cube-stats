@@ -18,5 +18,6 @@ db.define_table(
     'Transactions',
     Field('card_id', 'reference Cards', required=True),
     Field('mu', 'float', required=True),
-    Field('sigma', 'float', required=True)
+    Field('sigma', 'float', required=True),
+    Field('timestamp', 'string', required=True)
 )
