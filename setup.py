@@ -47,8 +47,8 @@ def update(filename):
     '''
 
     log.debug("Reading from %s", filename)
-    f = open(filename, 'r')
-    cardData = f.readlines()
+    with open(filename, 'r') as f:
+        cardData = f.readlines()
     log.info("cardData indicates a %s-card cube.", len(cardData))
 
     # Step 1

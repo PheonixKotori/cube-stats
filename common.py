@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-"""Initialize and define cinch-stats database."""
+"""Initialize and define cube-stats database."""
 
 # Construct sqlite database
 from dal import DAL, Field
@@ -18,5 +18,5 @@ db.define_table(
     'Transactions',
     Field('card_id', 'reference Cards', required=True),
     Field('mu', 'float', required=True),
-    Field('sigma', 'float', required=True)
+    Field('sigma', 'float', required=True),
 )
