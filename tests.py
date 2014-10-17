@@ -5,7 +5,7 @@ import sys
 import unittest
 
 import setup
-
+import draft
 
 db = None  # Set by configDB
 
@@ -83,7 +83,7 @@ class MainTest(unittest.TestCase):
 
     def testUpdateCardList(self):
         """test that database is updated properly"""
-        setup.update(cards_file)  # Tested via testLoadCardsList
+        setup.update(cards_file)  # Tested via testLoadCardList
         setup.update(cards_file2)
         
         # cards_list2 should make the following changes against card_list:
@@ -98,8 +98,28 @@ class MainTest(unittest.TestCase):
         self.assertEqual(1, setup.db(setup.db.Cards.Name == "Swamp").select().first().Quantity)
         self.assertEqual(0, setup.db(setup.db.Cards.Name == "Faith's Fetters").select().first().Quantity)
         self.assertEqual(1, setup.db(setup.db.Cards.Name == "Island").select().first().Quantity)
-        
-        
+
+    def testNewCardRatings(self):
+        """test that cards with no transactions can be loaded from the db"""
+        setup.update(cards_file) # Tested via testLoadCardList
+        setup.update(cards_file2) # Tested via testUpdateCardList
+        ratings = draft.get_current_ratings()
+
+        # Do get all active cards (Qty != 0)
+        self.assertEqual(len(ratings), 5)
+
+        # Do not get any inactive cards (Qty == 0)
+        self.assertTrue("Faith's Fetters" not in ratings)
+
+        # No transactions yet; check that all mu,sigma are 25,25
+        for entry in ratings.values():
+            self.assertEqual(entry, (25,25))
+
+    def testFirstTransaction(self):
+        """Test that a single pick can be processed and written to db."""
+        pass
+        # do stuff
+
 if __name__ == "__main__":
     setup.db = getTempDB(showerr=True)
     unittest.main()
