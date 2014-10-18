@@ -30,10 +30,17 @@ if __name__ == "__main__":
 # DAL setup/database init
 from common import db
 
+# Define starting mu-sigma in case there are no existing transactions
+DEFAULT_MU = 25.0
+DEFAULT_SIGMA = 25.0/3
+
 def get_current_ratings():
     '''Return a dict with a key for each active cardname, and values of tuples
     like (mu, sigma).'''
-    return {}
+    active_cards_with_ratings = db(db.Cards.Quantity > 0).select(db.Cards.Name, db.Transactions.mu.coalesce(DEFAULT_MU).with_alias('mu'), db.Transactions.sigma.coalesce(DEFAULT_SIGMA).with_alias('sigma'), left=db.Transactions.on(db.Cards.id == db.Transactions.card_id))
+    aacdict = {row['Cards.Name']:(row['mu'], row['sigma']) for row in active_cards_with_ratings}
+
+    return aacdict
 
 if __name__ == "__main__":
     pass

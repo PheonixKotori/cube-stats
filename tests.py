@@ -54,7 +54,14 @@ def getTempDB(showerr=False):
     
 class MainTest(unittest.TestCase):
 
-    """Unit tests for cube-stats. Includes setup of database and calculation of stuff. """
+    """Unit tests for cube-stats. Includes setup of db and calculation of stuff. """
+    ARBITRARY_EPSILON = 0.001
+
+    def assertCloseEnough(self, this_float, that_float):
+        if type(this_float) != float or type(that_float) != float:
+            raise TypeError("Only assertCloseEnough on floats.")
+        if abs(this_float - that_float) > self.ARBITRARY_EPSILON:
+            raise
 
     def setUp(self):
         """do stuff to prepare for each test"""
@@ -111,9 +118,10 @@ class MainTest(unittest.TestCase):
         # Do not get any inactive cards (Qty == 0)
         self.assertTrue("Faith's Fetters" not in ratings)
 
-        # No transactions yet; check that all mu,sigma are 25,25
+        # No transactions yet; check that all mu,sigma are (25.0,25.0/3)
         for entry in ratings.values():
-            self.assertEqual(entry, (25,25))
+            self.assertCloseEnough(entry[0], 25.0)
+            self.assertCloseEnough(entry[1], 25.0/3)
 
     def testFirstTransaction(self):
         """Test that a single pick can be processed and written to db."""
@@ -121,5 +129,5 @@ class MainTest(unittest.TestCase):
         # do stuff
 
 if __name__ == "__main__":
-    setup.db = getTempDB(showerr=True)
+    setup.db = draft.db = getTempDB(showerr=True)
     unittest.main()
