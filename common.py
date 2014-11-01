@@ -1,6 +1,9 @@
 #!/usr/bin/python2
 """Initialize and define cube-stats database."""
 
+# Cube-stats TrueSkill constants
+
+
 # Construct sqlite database
 from dal import DAL, Field
 

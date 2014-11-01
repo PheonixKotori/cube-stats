@@ -55,13 +55,6 @@ def getTempDB(showerr=False):
 class MainTest(unittest.TestCase):
 
     """Unit tests for cube-stats. Includes setup of db and calculation of stuff. """
-    ARBITRARY_EPSILON = 0.001
-
-    def assertCloseEnough(self, this_float, that_float):
-        if type(this_float) != float or type(that_float) != float:
-            raise TypeError("Only assertCloseEnough on floats.")
-        if abs(this_float - that_float) > self.ARBITRARY_EPSILON:
-            raise
 
     def setUp(self):
         """do stuff to prepare for each test"""
@@ -120,13 +113,35 @@ class MainTest(unittest.TestCase):
 
         # No transactions yet; check that all mu,sigma are (25.0,25.0/3)
         for entry in ratings.values():
-            self.assertCloseEnough(entry[0], 25.0)
-            self.assertCloseEnough(entry[1], 25.0/3)
+            self.assertAlmostEqual(entry[0], 25.0)
+            self.assertAlmostEqual(entry[1], 25.0/3)
 
-    def testFirstTransaction(self):
-        """Test that a single pick can be processed and written to db."""
+    def testPartialUpdateCoeffs(self):
+        """verify that update coeffs are created correctly for n>0 deals."""
+        t = draft.Trollitaire()
+
+        self.assertRaises(ValueError, t.generate_partial_update_coeffs, 'a')
+        self.assertRaises(ValueError, t.generate_partial_update_coeffs, 0)
+
+        for x in range(1, 150):
+            a = t.generate_partial_update_coeffs(x)
+            self.assertEqual(len(a), x) # Critical - len(list) == num_deals.
+            self.assertAlmostEqual(a[0], 1.0) # First deal is always 1.0.
+            if x > 1: # Check that the last element is 0.1 for >1 deal.
+                self.assertAlmostEqual(a[-1], 0.1)
+            if x == 11: # Check an arbitrary point on the line for 11 deals.
+                self.assertAlmostEqual(a[5], 0.6)
+            if x == 21: # Check anther arbitrary point at x = 21.
+                self.assertAlmostEqual(a[7], 0.75)
+
+    def testTrollitaireDeal(self):
+        """Test that a Trollitaire deal can be correctly processed.""" 
         pass
         # do stuff
+
+    def testTransactionWrite(self):
+        """Test that transactions can be written to the db correctly."""
+        pass
 
 if __name__ == "__main__":
     setup.db = draft.db = getTempDB(showerr=True)
