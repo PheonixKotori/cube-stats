@@ -64,6 +64,13 @@ class Trollitaire(object):
     reducing the ratings adjustments in a linear fashion after the first 10% of
     the draft.
     '''
+
+    def __init__(self):
+        '''Initialize a Trollitaire TrueSkill environment.'''
+
+        # Trollitaire uses default values except for draw probability.
+        self.env = trueskill.TrueSkill(draw_probability = 0.25)
+
     
     def parse_report_file(self, filename):
         '''Read a Trollitaire draft report file and return a list of deals to
@@ -104,12 +111,53 @@ class Trollitaire(object):
         return coeff_list
         
 
-    def process_deal(self, pick_tuple_list):
-        '''Perform a full TrueSkill ratings update on the cards listed
-        picked_rating = trueskill.Rating
+    def process_deal(self, ratings, placement):
+        '''Perform a full TrueSkill ratings update on the cards listed.
+        ratings is a dictionary with name:(mu,sigma) values.
+        placement is a dictionary with name:place values.
+
+        Because only partial adjustments are made for later draft picks,
+        TrueSkill.Rating objects are not passed around - they are created
+        locally inside the Trollitaire environment and not passed back to the
+        calling method.
+
+        Inputs
+        -----
+        ratings - {'cardname':(mu, sigma), 'cardname':(mu,sigma), ...}
+        placement - {'cardname':place, 'cardname':place, ...}
+
+        ratings & placement must have the same keys or KeyError will be raised.
+
+
+        Outputs
+
+        Returns the **change** in both mu and sigma for each card.
+        Return format is a dictionary with keys = cardnames and values = tuples
+        with the mu/sigma deltas.
+        -----
+        rating_deltas - {'cardname':(mu_d, sigma_d), 'cardname':(mu_d, sigma_d),
+                         'cardname':(mu_d, sigma_d), ... }
         '''
-        raise NotImplementedError
+
+        if ratings.keys() != placement.keys():
+            raise KeyError("Ratings and placement must have the same keys.")
+
+        rating_list, place_list = [], []
+        for k in ratings:
+            rating_list += [{k:self.env.create_rating(ratings[k])}]
+            place_list += [placement[k]]
+
+        new_ratings = {}
+        for entry in self.env.rate(rating_list, place_list):
+            new_ratings.update(entry)
+
+        rating_deltas = {k:(new_ratings[k].mu - ratings[k][0], 
+                            new_ratings[k].sigma - ratings[k][1])
+                         for k in ratings}
+
+        return rating_deltas
 
 
+    
 if __name__ == "__main__":
     pass

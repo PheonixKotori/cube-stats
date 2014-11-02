@@ -136,8 +136,19 @@ class MainTest(unittest.TestCase):
 
     def testTrollitaireDeal(self):
         """Test that a Trollitaire deal can be correctly processed.""" 
-        pass
-        # do stuff
+        t = draft.Trollitaire()
+
+        _M = 25.0
+        _S = 25.0/3
+        dummycards = {'Ow':(_M,_S), 'Ice':(_M,_S), 'Mox':(_M,_S), 'Tek':(_M,_S),
+                      'Discombobulate':(_M,_S)}
+        dummyplacement = {'Ow':0, 'Ice':1, 'Mox':2, 'Tek':2, 'Discombobulate':2}
+
+        result = t.process_deal(dummycards, dummyplacement)
+
+        self.assertAlmostEqual(result['Ow'][0], 8.52939199)
+        self.assertAlmostEqual(result['Ice'][0], 2.00, places = 4)
+        self.assertAlmostEqual(result['Discombobulate'][1], -3.1, places = 1)
 
     def testTransactionWrite(self):
         """Test that transactions can be written to the db correctly."""
