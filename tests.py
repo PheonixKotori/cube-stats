@@ -150,6 +150,17 @@ class MainTest(unittest.TestCase):
         self.assertAlmostEqual(result['Ice'][0], 2.00, places = 4)
         self.assertAlmostEqual(result['Discombobulate'][1], -3.1, places = 1)
 
+    def testTrollitaireDraft(self):
+        '''this mostly just tests that process_deal doesn't throw errors.'''
+        # make better later
+        t = draft.Trollitaire()
+        a = {ch:(25.0,25.0/3) for ch in 'abcdefg'}
+        b = [{ch:i for ch, i in zip('abcde', [0,1,2,2,2])}]
+
+        r = t.process_draft(a,b)
+        
+        self.assertAlmostEqual(r['b'][0], 27.00, places=2)
+        
     def testTransactionWrite(self):
         """Test that transactions can be written to the db correctly."""
         pass

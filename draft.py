@@ -70,18 +70,7 @@ class Trollitaire(object):
 
         # Trollitaire uses default values except for draw probability.
         self.env = trueskill.TrueSkill(draw_probability = 0.25)
-
     
-    def parse_report_file(self, filename):
-        '''Read a Trollitaire draft report file and return a list of deals to
-        process.'''
-        raise NotImplementedError
-
-    def process_draft(self, ratings_dict, deal_list):
-        '''Apply TrueSkill ratings updates to a series of deals detailed in
-        deal_list and return an updated ratings_dict.'''
-        raise NotImplementedError
-
     def generate_partial_update_coeffs(self, num_deals):
         '''Generate a list of coefficients to apply to updates based on their
         position in the draft.
@@ -97,7 +86,7 @@ class Trollitaire(object):
         coeff_list (list of floats): each entry is a deal coefficient.
         '''
         num_deals = int(num_deals)
-        
+
         if num_deals < 1:
             raise ValueError("num_deals must be greater than 0.")
 
@@ -109,7 +98,6 @@ class Trollitaire(object):
         log.debug("Update-coeffs list length is %s", len(coeff_list))
 
         return coeff_list
-        
 
     def process_deal(self, ratings, placement):
         '''Perform a full TrueSkill ratings update on the cards listed.
@@ -142,6 +130,12 @@ class Trollitaire(object):
         if ratings.keys() != placement.keys():
             raise KeyError("Ratings and placement must have the same keys.")
 
+        for k in ratings:
+            if type(ratings[k]) is not tuple:
+                raise TypeError("Ratings must be tuples")
+            if type(placement[k]) is not int:
+                raise TypeError("Placing must be integer")
+
         rating_list, place_list = [], []
         for k in ratings:
             rating_list += [{k:self.env.create_rating(ratings[k])}]
@@ -157,7 +151,64 @@ class Trollitaire(object):
 
         return rating_deltas
 
-
+    def parse_report_file(self, filename):
+        '''Read a Trollitaire draft report file and return a list of deals to
+        process.'''
+        raise NotImplementedError
     
+    def process_draft(self, ratings, deal_list):
+        '''
+        Apply TrueSkill ratings updates to a series of deals detailed in
+        deal_list and return an updated ratings dict.
+
+        Inputs
+        ------
+        ratings - {'cardname':(mu,sigma), 'cardname':(mu, sigma), ...}
+
+        for at least all cards in the draft - all cards in the cube will be
+        typical.
+
+        deal_list - [{'cardname':N, 'cardname':N, 'cardname':N ...}, ...]
+
+        where each list entry is a dict with a deal and N is the card's place
+        in said deal (0 for first-picked, 1 for second, up to a tie of N for
+        undrafted).
+
+        Outputs
+        -------
+        new_ratings - dictionary of same format as ratings, but only including
+        cards that had rating changes. (These cards will have new transactions
+        written to the database.)
+        '''
+
+        # Input validation
+        pass
+
+        old_ratings = ratings.copy() # Make a copy for comparison
+        
+        # Get partial update coefficients
+        update_coeffs = self.generate_partial_update_coeffs(len(deal_list))
+        
+        # Process deals
+        for ix, deal in enumerate(deal_list):
+            # deal_list should be able to pass the placement data through
+            # unchanged. Need to grab the appropriate ratings to pass in,
+            # and retain to add/subtract the deltas * the update coefficient.
+            cards = {key:ratings[key] for key in deal.keys()}
+
+            r_delta = self.process_deal(cards, deal)
+            for card in r_delta:
+                # ratings gets updated so that multiple-copy cards have their
+                # updates applied immediately in case they come up again in the
+                # same draft.
+                ratings[card] = (ratings[card][0] + r_delta[card][0] *
+                                 update_coeffs[ix],
+                                 ratings[card][0] + r_delta[card][1] *
+                                 update_coeffs[ix])
+
+        # Run a comparison and only return cards that have changed
+        return {k:ratings[k] for k in ratings if ratings[k] != old_ratings[k]}
+
+                
 if __name__ == "__main__":
     pass
