@@ -99,6 +99,102 @@ class Trollitaire(object):
 
         return coeff_list
 
+    def parse_report_file(self, filename):
+        '''Read a Trollitaire draft report file and return a list of deals to
+        process.
+
+        Input
+        -----
+
+        filename - path to the draft report
+
+        Output (copied from process_draft's inputs)
+        -------------------------------------------
+        deal_list - [{'cardname':N, 'cardname':N, 'cardname':N ...}, ...]
+
+        where each list entry is a dict with a deal and N is the card's place
+        in said deal (0 for first-picked, 1 for second, up to a tie of N for
+        undrafted).
+
+
+        '''
+        TOKENS = {'deal':'[DEAL]',
+                  'pick':'[PICK]',
+                  'undo':'[UNDO]',
+                  'sep':'|'}
+        
+        with open(filename, 'r') as f:
+            raw_data = f.readlines()
+
+            # Quick check for basic formatting
+            for ix, line in enumerate(raw_data):
+                if not (line.startswith('[') or line.startswith('#')):
+                    raise ValueError('Invalid input read on line %s', ix)
+
+            # remove comment lines and trailing newlines
+            no_cmts = [line.rstrip('\n') for line in raw_data if not\
+                       line.startswith('#')]
+            del raw_data
+            
+            # remove [UNDO] lines and the previous line
+            undo_found_flag = True
+            while undo_found_flag:
+                undo_found_flag = False
+                for ix, line in enumerate(no_cmts):
+                    if line.startswith(TOKENS['undo']):
+                        undo_found_flag = True
+                        no_cmts.remove(ix)
+                        no_cmts.remove(ix-1)
+                        log.warning('%s found, removing previous line',
+                                    TOKENS['undo'])
+                        break # reset the flag and restart the for loop
+                
+            # build list of deals/picks
+            # warn if deal has no picks - assign n-way tie (assume no pick)
+            deal_list = []
+
+            # Warning flags
+            first_line_flag = True
+            last_line_was_deal_flag = False
+            
+            for line in no_cmts:
+                if first_line_flag:
+                    if not line.startswith(TOKENS['deal']):
+                        raise ValueError("First line didn't contain %s!",
+                                         TOKENS['deal'])
+                    first_line_flag = False
+                if line.startswith(TOKENS['deal']):
+                    if last_line_was_deal_flag:
+                        log.warning("Deal with no picks detected!")
+                    # Remove deal flag and initial separator
+                    # Rest of string is cardnames found in the deal
+                    cards = line[len(TOKENS['deal']+TOKENS['sep']):].split(TOKENS['sep'])
+                    deal_list.append({cardname:0 for cardname in cards})
+                    picked_cards_this_deal = []
+                    
+                elif line.startswith(TOKENS['pick']):
+                    # [PICK] lines have 2 fields including a single cardname
+                    #TODO add error-checking based on player field??
+                    
+                    # Add picked card to list of 'safe' cards
+                    this_picked_card = line.split(TOKENS['sep'])[-1]
+                    picked_cards_this_deal.append(this_picked_card)
+                    
+                    # Increment the placing of cards not on safe list
+                    picked_card_found_flag = False
+                    for k in deal_list[-1]:
+                        if k not in picked_cards_this_deal:
+                            deal_list[-1][k] += 1
+                        else:
+                            if k == this_picked_card:
+                                picked_card_found_flag = True
+                    if not picked_card_found_flag:
+                        raise ValueError("Picked card %s not found in deal!",
+                                         line.split(TOKENS['sep'])[-1])
+
+            # return completed deal_list
+            return deal_list
+    
     def process_deal(self, ratings, placement):
         '''Perform a full TrueSkill ratings update on the cards listed.
         ratings is a dictionary with name:(mu,sigma) values.
@@ -151,11 +247,6 @@ class Trollitaire(object):
 
         return rating_deltas
 
-    def parse_report_file(self, filename):
-        '''Read a Trollitaire draft report file and return a list of deals to
-        process.'''
-        raise NotImplementedError
-    
     def process_draft(self, ratings, deal_list):
         '''
         Apply TrueSkill ratings updates to a series of deals detailed in

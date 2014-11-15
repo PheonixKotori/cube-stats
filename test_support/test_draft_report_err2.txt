@@ -1,0 +1,5 @@
+[PICK]|0|Swamp
+[DEAL]|Swamp|Faith's Fetters|Aether Vial
+# This is a comment
+[PICK]|1|Aether Vial
+[PICK]|0|Swamp

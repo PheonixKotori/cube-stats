@@ -1,0 +1,8 @@
+# This is the correctly formed draft, with no problems or corner cases.
+[DEAL]|Faith's Fetters|Lightning Helix|Swamp|Glare of Subdual
+[PICK]|0|Glare of Subdual
+[PICK]|1|Swamp
+[DEAL]|Lightning Helix|Aether Vial|Faith's Fetters|Swamp
+[PICK]|1|Aether Vial
+[DEAL]|Swamp|Aether Vial|Glare of Subdual|Lightning Helix
+[PICK]|0|Swamp

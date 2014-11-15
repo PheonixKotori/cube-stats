@@ -13,6 +13,10 @@ db = None  # Set by configDB
 cards_file = "test_support/test_cardlist.txt"
 cards_file2 = "test_support/test_cardlist2.txt"
 
+# Sample draft reports for use in conjunction with cards_file
+draft_file = "test_support/test_draft_report.txt"
+draft_file_err = "test_support/test_draft_report_err.txt"
+draft_file_err2 = "test_support/test_draft_report_err2.txt"
 
 def getTempDB(showerr=False):
     """Create temp database by manually executing db setup code."""
@@ -152,6 +156,9 @@ class MainTest(unittest.TestCase):
 
     def testTrollitaireDraft(self):
         '''this mostly just tests that process_deal doesn't throw errors.'''
+        # TODO add validation of deal data against the ratings dictionary
+        pass
+    
         # make better later
         t = draft.Trollitaire()
         a = {ch:(25.0,25.0/3) for ch in 'abcdefg'}
@@ -160,7 +167,48 @@ class MainTest(unittest.TestCase):
         r = t.process_draft(a,b)
         
         self.assertAlmostEqual(r['b'][0], 27.00, places=2)
+
+
+    def testDraftFileParsing(self):
+        """Test that a properly formatted file can be read and parsed into a
+        list of deals. Also verify that appropriate errors are thrown for mal-
+        formed input, and that [UNDO] tags are handled smoothly as well.
+
+        parse_report_file will not verify that the cards listed are spelled
+        correctly or even in the cube - that will be the responsibility of
+        process_draft.
+        """
+
+        # Picks should be:
+        draft_file_output = [
+            {'Glare of Subdual':0, 'Swamp':1, "Faith's Fetters":2, "Lightning Helix":2},
+            {'Aether Vial':0, 'Lightning Helix':1, "Faith's Fetters":1, 'Swamp':1},
+            {'Swamp':0, 'Aether Vial':1, 'Glare of Subdual':1, 'Lightning Helix':1} ]
         
+        t = draft.Trollitaire()
+        out = t.parse_report_file(draft_file)
+
+        # Slightly more detailed error reporting than simply comparing the outputs equal
+        self.assertEqual(len(out), len(draft_file_output))
+        for i in range(len(out)):
+            self.assertEqual(out[i], draft_file_output[i])
+
+    def testDraftFileErrorChecks(self):
+        """Test that draft files with errors in them generate the appropriate
+        exceptions."""
+
+        t = draft.Trollitaire()
+        # Change from ValueError to whatever makes sense
+        self.assertRaises(ValueError, t.parse_report_file, draft_file_err)
+        self.assertRaises(ValueError, t.parse_report_file, draft_file_err2)
+
+    def testDraftFileWarningChecks(self):
+        """test that [UNDO] lines and other non-fatal anomalies generate
+        appropriate warning messages."""
+
+        #TODO implement this - how to handle checks of log functions?
+        pass
+    
     def testTransactionWrite(self):
         """Test that transactions can be written to the db correctly."""
         pass
