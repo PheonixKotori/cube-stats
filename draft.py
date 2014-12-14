@@ -163,8 +163,8 @@ class Trollitaire(object):
                 for ix, line in enumerate(no_cmts):
                     if line.startswith(TOKENS['undo']):
                         undo_found_flag = True
-                        no_cmts.remove(ix)
-                        no_cmts.remove(ix-1)
+                        no_cmts.pop(ix)
+                        no_cmts.pop(ix-1)
                         log.warning('%s found, removing previous line',
                                     TOKENS['undo'])
                         break # reset the flag and restart the for loop
@@ -243,8 +243,10 @@ class Trollitaire(object):
                          'cardname':(mu_d, sigma_d), ... }
         '''
 
-        if ratings.keys() != placement.keys():
-            raise KeyError("Ratings and placement must have the same keys.")
+        if ratings.keys().sort() != placement.keys().sort():
+            raise KeyError("Ratings and placement must have the same keys.\n\
+                            Ratings keys: %s\n\
+                            Placement keys: %s", ratings.keys(), placement.keys())
 
         for k in ratings:
             if type(ratings[k]) is not tuple:
