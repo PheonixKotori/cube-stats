@@ -211,7 +211,16 @@ class MainTest(unittest.TestCase):
     
     def testTransactionWrite(self):
         """Test that transactions can be written to the db correctly."""
-        pass
+        setup.update(cards_file)
+        draft.db = setup.db
+        trans = {'Swamp':(23.2,6.55), "Faith's Fetters":(11.9,4.33)}
+        
+        draft.write_updated_ratings(trans)
+
+        ratings = draft.get_current_ratings()
+
+        for card in trans:
+            self.assertEqual(trans[card], ratings[card])
 
 if __name__ == "__main__":
     setup.db = draft.db = getTempDB(showerr=True)

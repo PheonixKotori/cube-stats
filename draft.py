@@ -22,7 +22,8 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--loglevel",
                         help="set log level (default=WARNING)", type=str,
                         choices = list(LOG_SHORT.keys()), default='w')
-    parser.add_argument("draft", help="filename of draft file", type=str)
+    parser.add_argument("draft", help="filename of draft file [trollitaire only]",
+                        type=str)
     args = parser.parse_args()
     log.level = LOG_SHORT[args.loglevel]
 #------------------------------------------------------------------------------#
@@ -31,6 +32,7 @@ if __name__ == "__main__":
 from common import db
 
 import trueskill
+import datetime
 
 # Define starting mu-sigma in case there are no existing transactions
 DEFAULT_MU = 25.0
@@ -49,6 +51,24 @@ def get_current_ratings():
     acwrdict = {row['Cards.Name']:(row['mu'], row['sigma'])
                 for row in active_cards_with_ratings}
     return acwrdict
+
+def write_updated_ratings(transactions):
+    '''Given a cardname:(mu, sigma) dictonary, write each entry to the database as a new transaction. Each entry in a given call to this function should have an identical timestamp.
+
+    inputs
+
+    outputs
+
+    '''
+    timestamp = datetime.datetime.utcnow()
+
+    for cardname in transactions:
+        db.Transactions.insert(card_id = db.Cards(db.Cards.Name==cardname).id,
+                               mu = transactions[cardname][0],
+                               sigma = transactions[cardname][1],
+                               timestamp = timestamp)
+
+    db.commit()
 
 class Trollitaire(object):
     '''A collection of methods specific to processing Trollitaire drafts.
@@ -300,6 +320,10 @@ class Trollitaire(object):
         # Run a comparison and only return cards that have changed
         return {k:ratings[k] for k in ratings if ratings[k] != old_ratings[k]}
 
+        
                 
 if __name__ == "__main__":
-    pass
+    t = Trollitaire()
+    deals = t.parse_report_file(args.draft)
+    ratings = t.process_draft(get_current_ratings(), deals)
+    write_updated_ratings(ratings)
