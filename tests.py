@@ -166,8 +166,8 @@ class MainTest(unittest.TestCase):
 
         r = t.process_draft(a,b)
         
-        self.assertAlmostEqual(r['b'][0], 27.00, places=2)
-
+        self.assertAlmostEqual(r['b'][0], 27.00, places=2) # Check a mu value
+        self.assertAlmostEqual(r['a'][1], 6.193347454688) # Check a sigma value
 
     def testDraftFileParsing(self):
         """Test that a properly formatted file can be read and parsed into a

@@ -297,7 +297,7 @@ class Trollitaire(object):
         # Input validation
         pass
 
-        old_ratings = ratings.copy() # Make a copy for comparison
+        new_ratings = ratings.copy() # Make a copy for comparison
         
         # Get partial update coefficients
         update_coeffs = self.generate_partial_update_coeffs(len(deal_list))
@@ -307,20 +307,20 @@ class Trollitaire(object):
             # deal_list should be able to pass the placement data through
             # unchanged. Need to grab the appropriate ratings to pass in,
             # and retain to add/subtract the deltas * the update coefficient.
-            cards = {key:ratings[key] for key in deal.keys()}
+            cards = {key:new_ratings[key] for key in deal.keys()}
 
             r_delta = self.process_deal(cards, deal)
             for card in r_delta:
                 # ratings gets updated so that multiple-copy cards have their
                 # updates applied immediately in case they come up again in the
                 # same draft.
-                ratings[card] = (ratings[card][0] + r_delta[card][0] *
+                new_ratings[card] = (new_ratings[card][0] + r_delta[card][0] *
                                  update_coeffs[ix],
-                                 ratings[card][0] + r_delta[card][1] *
+                                 new_ratings[card][1] + r_delta[card][1] *
                                  update_coeffs[ix])
 
         # Run a comparison and only return cards that have changed
-        return {k:ratings[k] for k in ratings if ratings[k] != old_ratings[k]}
+        return {k:new_ratings[k] for k in new_ratings if new_ratings[k] != ratings[k]}
 
         
                 
