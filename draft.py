@@ -170,7 +170,11 @@ class Trollitaire(object):
                         break # reset the flag and restart the for loop
                 
             # build list of deals/picks
-            # warn if deal has no picks - assign n-way tie (assume no pick)
+            
+            # Warn if deal has no picks - proceed, but don't count the deal.
+            # This behavior is based on data seen in the wild - could be changed
+            # later if needed.
+            
             deal_list = []
 
             # Warning flags
@@ -186,13 +190,17 @@ class Trollitaire(object):
                 if line.startswith(TOKENS['deal']):
                     if last_line_was_deal_flag:
                         log.warning("Deal with no picks detected!")
+                        continue
                     # Remove deal flag and initial separator
                     # Rest of string is cardnames found in the deal
                     cards = line[len(TOKENS['deal']+TOKENS['sep']):].split(TOKENS['sep'])
                     deal_list.append({cardname:0 for cardname in cards})
                     picked_cards_this_deal = []
+                    last_line_was_deal_flag = True
                     
                 elif line.startswith(TOKENS['pick']):
+                    last_line_was_deal_flag = False
+                    
                     # [PICK] lines have 2 fields including a single cardname
                     #TODO add error-checking based on player field??
                     
