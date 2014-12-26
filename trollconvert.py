@@ -89,5 +89,5 @@ def convert_draft_file(infile_h, outfile_h):
 
 if __name__ == "__main__":
     with open(args.draft, 'r') as f:
-        with open('converted_'+args.draft, 'w') as o:
+        with open(args.draft+'.conv', 'w') as o:
             convert_draft_file(f,o)

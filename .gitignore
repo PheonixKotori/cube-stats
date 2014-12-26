@@ -53,6 +53,7 @@ coverage.xml
 docs/_build/
 
 # Data files
+data/*.conv
 data/*.draft
 data/*.txt
 data/*.csv
