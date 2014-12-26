@@ -59,3 +59,8 @@ data/*.txt
 data/*.csv
 db/*.table
 db/*.sqlite
+
+
+# Web2py
+*/databases/*.table
+*/sessions/*
