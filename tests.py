@@ -3,9 +3,11 @@
 
 import sys
 import unittest
+import cStringIO
 
 import setup
 import draft
+import trollconvert
 
 db = None  # Set by configDB
 
@@ -17,6 +19,14 @@ cards_file2 = "test_support/test_cardlist2.txt"
 draft_file = "test_support/test_draft_report.txt"
 draft_file_err = "test_support/test_draft_report_err.txt"
 draft_file_err2 = "test_support/test_draft_report_err2.txt"
+
+# Files for trollitaire draft conversion
+
+old_troll_file = "test_support/example_old_style_troll.draft"
+old_troll_file2 = "test_support/example_old_style_troll2.draft"
+converted_troll = "test_support/example_troll_converted.draft"
+converted_troll2 = "test_support/example_troll_converted2.draft"
+
 
 def getTempDB(showerr=False):
     """Create temp database by manually executing db setup code."""
@@ -221,6 +231,28 @@ class MainTest(unittest.TestCase):
 
         for card in trans:
             self.assertEqual(trans[card], ratings[card])
+
+    def testTrollitaireConverter(self):
+        """Test that the Trollitaire converter works properly."""
+        # First test case (no surprises)
+        tempfile = cStringIO.StringIO()
+        with open(old_troll_file) as infile:
+            trollconvert.convert_draft_file(infile, tempfile)
+
+        expected = open(converted_troll).read()
+        tempfile.seek(0)
+        result = tempfile.read()
+        self.assertEqual(expected, result)
+
+        # Second test case (has an UNDO)
+        tempfile = cStringIO.StringIO()
+        with open(old_troll_file2) as infile:
+            trollconvert.convert_draft_file(infile, tempfile)
+
+        expected = open(converted_troll2).read()
+        tempfile.seek(0)
+        result = tempfile.read()
+        self.assertEqual(expected, result)
 
 if __name__ == "__main__":
     setup.db = draft.db = getTempDB(showerr=True)
