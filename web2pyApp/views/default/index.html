@@ -1,35 +1,48 @@
-{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{left_sidebar_enabled,right_sidebar_enabled=False,True}}
 {{extend 'layout.html'}}
 
-{{if 'message' in globals():}}
-<h3>{{=message}}</h3>
 
-<h4>{{=T('How did you get here?')}}</h4>
-<ol>
-  <li>{{=T('You are successfully running web2py')}}</li>
-  <li>{{=XML(T('You visited the url %s', A(request.env.path_info,_href=request.env.path_info)))}}</li>
-  <li>{{=XML(T('Which called the function %s located in the file %s',
-             (A(request.function+'()',_href='#'),
-              A('web2py/applications/%(application)s/controllers/%(controller)s.py'%request,
-               _href=URL('admin','default','peek', args=(request.application,'controllers',request.controller+'.py'))))))}}</li>
-  <li>{{=XML(T('The output of the file is a dictionary that was rendered by the view %s',
-           A('web2py/applications/%(application)s/views/%(controller)s/index.html'%request,
-           _href=URL('admin','default','peek',args=(request.application,'views',request.controller,'index.html')))))}}</li>
-  <li>{{=T('You can modify this application and adapt it to your needs')}}</li>
-</ol>
-{{elif 'content' in globals():}}
-{{=content}}
-{{else:}}
-{{=BEAUTIFY(response._vars)}}
-{{pass}}
+<p>Keeping it simple for now...</p>
+
+tables for top 10 of each color + colorless -- pending inclusion of Color as a field
+
+table with top 10 overall
+
+<h3>Top Cards</h3>
+<table>
+  {{for ix, card in enumerate(top_cards):}}
+      {{=TR(TD(ix+1), TD(card.Cards.Name), TD(card.mu), TD(card.sigma))}}
+  {{pass}}
+</table>
+
+
+<h3>Graphs</h3>
+
+<p>Mus for Top Cards</p>
+<canvas id="myChart" width="400" height="400"></canvas>
+
 
 {{block right_sidebar}}
-{{=A(T("Administrative Interface"), _href=URL('admin','default','index'), _class='btn',
-     _style='margin-top: 1em;')}}
-<h6>{{=T("Don't know what to do?")}}</h6>
-<ul>
-  <li>{{=A(T("Online examples"), _href=URL('examples','default','index'))}}</li>
-  <li><a href="http://web2py.com">web2py.com</a></li>
-  <li><a href="http://web2py.com/book">{{=T('Documentation')}}</a></li>
-</ul>
+<p>right sidebar</p>
 {{end}}
+
+
+<script src="{{=URL('static', 'js/Chart.min.js')}}"></script>
+<script>
+var data = {
+  labels: {{=XML([card.Cards.Name for card in top_cards])  }},
+  datasets: [
+  {
+    label: "Mus for Top Cards",
+    fillColor: "rgba(220,220,220,0.5)",
+    strokeColor: "rgba(220,220,220,0.8)",
+    highlightFill: "rgba(220,220,220,0.75)",
+    highlightStroke: "rgba(220,220,220,1)",
+    data: {{=XML([card.mu for card in top_cards])}}
+  }]
+
+};
+
+var ctx = document.getElementById("myChart").getContext("2d");
+var myBarChart = new Chart(ctx).Bar(data);
+</script>
