@@ -1,0 +1,7 @@
+To use:
+
+In your web2py/applications folder, create a symbolic link connecting this folder to
+applications/cubestats, as in
+
+`cd /path/to/my/web2py/applications`
+`ln -s /path/to/this/web2pyApp cubestats`
