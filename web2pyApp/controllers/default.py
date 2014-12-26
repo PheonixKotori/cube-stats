@@ -39,8 +39,9 @@ def take_snapshot(timestamp=None):
         timestamp = db(db.Transactions.id > 0).select(
             db.Transactions.timestamp,
             orderby=~db.Transactions.timestamp,
-            limitby=(0,1)).first().timestamp
+            limitby=(0,1)).first()#.timestamp
 
+    # TODO make use of timestamp arg
     active_cards_with_ratings = db(db.Cards.Quantity > 0).select(db.Cards.Name,
         db.Transactions.mu.coalesce(DEFAULT_MU).with_alias('mu'),
         db.Transactions.sigma.coalesce(DEFAULT_SIGMA).with_alias('sigma'),
