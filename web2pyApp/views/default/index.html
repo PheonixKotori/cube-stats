@@ -1,24 +1,27 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,True}}
 {{extend 'layout.html'}}
 
+{{def trunc(f, n):
+    '''Truncates/pads a float f to n decimal places without rounding'''
+    return ('%.*f' % (n + 1, f))[:-1]
+}}
 
 <p>Keeping it simple for now...</p>
 
 tables for top 10 of each color + colorless -- pending inclusion of Color as a field
 
-table with top 10 overall
 
-<h3>Top Cards</h3>
+<h3>Top Cards &mdash; All Colors</h3>
 <table>
   {{for ix, card in enumerate(top_cards):}}
-      {{=TR(TD(ix+1), TD(card.Cards.Name), TD(card.mu), TD(card.sigma))}}
+      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 3)), TD(trunc(card.sigma, 3)))}}
   {{pass}}
 </table>
 
 
 <h3>Graphs</h3>
 
-<p>Mus for Top Cards</p>
+<p>Mu's for Top Cards</p>
 <canvas id="myChart" width="400" height="400"></canvas>
 
 
@@ -30,10 +33,10 @@ table with top 10 overall
 <script src="{{=URL('static', 'js/Chart.min.js')}}"></script>
 <script>
 var data = {
-  labels: {{=XML([card.Cards.Name for card in top_cards])  }},
+  labels: {{=XML([card.name for card in top_cards])  }},
   datasets: [
   {
-    label: "Mus for Top Cards",
+    label: "Mu's for Top Cards",
     fillColor: "rgba(220,220,220,0.5)",
     strokeColor: "rgba(220,220,220,0.8)",
     highlightFill: "rgba(220,220,220,0.75)",
