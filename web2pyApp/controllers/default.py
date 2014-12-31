@@ -17,11 +17,17 @@ def index():
     draft_count = count_drafts_in_snapshot(None)
 
     top_cards = snapshot[0:num_top_cards]
+    bottom_cards = snapshot[-num_top_cards:]
+
+    untouched_cards = [c for c in snapshot if c.mu == 25]
     
     return dict(colors=colors,
+                cube_size=len(snapshot),
                 top_cards=top_cards,
                 top_cards_by_color=top_cards_by_color,
+                bottom_cards=bottom_cards,
                 draft_count=draft_count,
+                untouched_cards=untouched_cards
                 )
 
 

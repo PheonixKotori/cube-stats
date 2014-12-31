@@ -15,6 +15,9 @@ db.define_table(
     'Cards',
     Field('Name', 'string', required=True),
     Field('Quantity', 'integer', required=True),
+    Field('Color', 'string'),
+    Field('Cardtype', 'string'),
+    Field('CMC', 'integer'),
 )
 
 db.define_table(
