@@ -27,6 +27,8 @@ if __name__ == "__main__":
     log.level = LOG_SHORT[args.loglevel]
 #------------------------------------------------------------------------------#
 
+import csv
+
 # DAL setup/database init
 from common import db
 
@@ -36,7 +38,7 @@ def update(filename):
     FILENAME: a list of cardnames, one per line. No quantity data - multiples
     must be listed separately for each instance. This matches CubeTutor's output
     as of August 2014.
-    
+
     This function:
     1. Iterates through the list and builds a {name: quantity} dictionary.
     2. Iterates through the cards table, setting quantities to 0 on all cards
@@ -47,8 +49,17 @@ def update(filename):
     '''
 
     log.debug("Reading from %s", filename)
+
     with open(filename, 'r') as f:
-        cardData = f.readlines()
+        if filename.lower().endswith("csv"):
+            log.info("Working with a CSV file")
+            is_csv = True
+            csvData = [x for x in csv.reader(f, delimiter=",", quotechar='"')]
+            cardData = [x[0] for x in csvData]
+        else:
+            is_csv = False
+            cardData = f.readlines()
+
     log.info("cardData indicates a %s-card cube.", len(cardData))
 
     # Step 1
@@ -86,9 +97,23 @@ def update(filename):
 
     log.warning("Adding %s cards...", added_cards)
 
+    if is_csv:
+        post_process_csv_data(csvData)
+
     db.commit()
 
     return
+
+
+def post_process_csv_data(data):
+    """Apply color, card type, and CMC to cards."""
+    for x in data:
+        # Each x is a list of the form [cardname, color, cardtype, CMC]
+        db(db.Cards.Name == x[0]).update(
+            Color=x[1].replace('MONO_', ''),
+            Cardtype=x[2],
+            CMC=x[3])
+
 
 # These functions currently act as placeholders and will be implemented should
 # the need arise.
@@ -96,9 +121,11 @@ def add(filename):
     '''Add cards found in FILENAME to the cube (increase quantity).'''
     raise NotImplementedError
 
+
 def drop(filename):
     '''Remove cards found in FILENAME from the cube. (set qty to 0?)'''
     raise NotImplementedError
+
 
 if __name__ == "__main__":
     update(args.cards)

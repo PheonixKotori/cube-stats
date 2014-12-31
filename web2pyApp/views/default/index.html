@@ -19,6 +19,19 @@ tables for top 10 of each color + colorless -- pending inclusion of Color as a f
   {{pass}}
 </table>
 
+<h3>Bottom Cards &mdash; All Colors</h3>
+<table>
+  {{for ix, card in enumerate(bottom_cards):}}
+      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
+  {{pass}}
+</table>
+
+<h3>Untouched Cards</h3>
+<table>
+  {{for ix, card in enumerate(untouched_cards):}}
+      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
+  {{pass}}
+</table>
 
 <h3>Graphs</h3>
 
