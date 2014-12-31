@@ -14,13 +14,26 @@ def index():
     num_top_cards = 12  # How many cards make up the top
 
     snapshot = take_snapshot(None)
+    draft_count = count_drafts_in_snapshot(None)
 
     top_cards = snapshot[0:num_top_cards]
     
     return dict(colors=colors,
                 top_cards=top_cards,
-                top_cards_by_color=top_cards_by_color
+                top_cards_by_color=top_cards_by_color,
+                draft_count=draft_count,
                 )
+
+
+def count_drafts_in_snapshot(timestamp=None):
+    """Return number of drafts represented in a snapshot based on timestamp."""
+    if timestamp is None:
+        import datetime
+        timestamp = datetime.datetime.utcnow()
+
+    data = db(db.Transactions.timestamp <= timestamp).count(
+        distinct=db.Transactions.timestamp)
+    return data
 
 
 def take_snapshot(timestamp=None):

@@ -57,6 +57,7 @@ data/*.conv
 data/*.draft
 data/*.txt
 data/*.csv
+data/processed
 db/*.table
 db/*.sqlite
 

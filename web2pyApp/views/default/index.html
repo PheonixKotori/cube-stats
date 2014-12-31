@@ -10,18 +10,19 @@
 
 tables for top 10 of each color + colorless -- pending inclusion of Color as a field
 
+<p><b>Showing data for {{=draft_count}} drafts</b></p>
 
 <h3>Top Cards &mdash; All Colors</h3>
 <table>
   {{for ix, card in enumerate(top_cards):}}
-      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 3)), TD(trunc(card.sigma, 3)))}}
+      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
   {{pass}}
 </table>
 
 
 <h3>Graphs</h3>
 
-<p>Mu's for Top Cards</p>
+<p>Mu's for Top Cards &mdash; error bars for 3-sigma</p>
 <canvas id="myChart" width="400" height="400"></canvas>
 
 
@@ -37,15 +38,20 @@ var data = {
   datasets: [
   {
     label: "Mu's for Top Cards",
-    fillColor: "rgba(220,220,220,0.5)",
-    strokeColor: "rgba(220,220,220,0.8)",
-    highlightFill: "rgba(220,220,220,0.75)",
-    highlightStroke: "rgba(220,220,220,1)",
-    data: {{=XML([card.mu for card in top_cards])}}
+    fillColor: "rgba(220,220,220,0)",
+    strokeColor: "rgba(0,220,220,0)",
+    pointColor: "rgba(0,220,220,1)",
+    pointHighlightFill : "#fff",
+    pointHighlightStroke : "rgba(220,220,220,1)",
+    errorStrokeColor: "rgba(0,220,220,1)",
+    pointDotRadius: 5,
+    bezierCurve: false,
+    data: {{=XML([card.mu for card in top_cards])}},
+    error: {{=XML([card.sigma * 3 for card in top_cards])}},
   }]
 
 };
 
 var ctx = document.getElementById("myChart").getContext("2d");
-var myBarChart = new Chart(ctx).Bar(data);
+var chart1 = new Chart(ctx).Line(data, {scaleBeginAtZero: true});
 </script>
