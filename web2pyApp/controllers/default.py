@@ -7,25 +7,27 @@ DEFAULT_SIGMA = 25.0/3
 
 def index():
     """Main page."""
-    colors = 'W U B R G N'.split(' ')
-    top_cards = []
-    top_cards_by_color = []
-
     num_top_cards = 12  # How many cards make up the top
+    color = request.vars.color
+
 
     snapshot = take_snapshot(None)
+
+    if color is None:
+        cards = snapshot
+    elif color == "MULTI":
+        cards = filter(lambda x: x.color not in (
+            'WHITE', 'BLUE', 'BLACK', 'RED', 'GREEN', 'COLOURLESS'), snapshot)
+    else:
+        cards = filter(lambda x: x.color == color, snapshot)
+
     draft_count = count_drafts_in_snapshot(None)
 
-    top_cards = snapshot[0:num_top_cards]
-    bottom_cards = snapshot[-num_top_cards:]
-
     untouched_cards = [c for c in snapshot if c.mu == 25]
-    
-    return dict(colors=colors,
+
+    return dict(cards=cards,
+                num_top_cards=num_top_cards,
                 cube_size=len(snapshot),
-                top_cards=top_cards,
-                top_cards_by_color=top_cards_by_color,
-                bottom_cards=bottom_cards,
                 draft_count=draft_count,
                 untouched_cards=untouched_cards
                 )
@@ -61,19 +63,25 @@ def take_snapshot(timestamp=None):
             limitby=(0,1)).first()#.timestamp
 
     # TODO make use of timestamp arg
-    active_cards_with_ratings = db(db.Cards.Quantity > 0).select(db.Cards.Name,
+    active_cards_with_ratings = db(db.Cards.Quantity > 0).select(
+        db.Cards.Name, db.Cards.Color, db.Cards.Cardtype, db.Cards.CMC,
         db.Transactions.mu.coalesce(DEFAULT_MU).with_alias('mu'),
         db.Transactions.sigma.coalesce(DEFAULT_SIGMA).with_alias('sigma'),
         left=db.Transactions.on(db.Cards.id == db.Transactions.card_id),
         orderby=db.Transactions.timestamp)
 
     # Only retains most recent timestamp due to select being ordered by same
-    acwrdict = {row['Cards.Name']:(row['mu'], row['sigma'])
+    acwrdict = {row['Cards.Name']:(row['mu'], row['sigma'], row['Cards.Color'],
+                                   row['Cards.Cardtype'], row['Cards.CMC'])
                 for row in active_cards_with_ratings}
 
     # Turn dict into ordered list
-    data = [Storage(name=name, mu=acwrdict[name][0],
-                    sigma=acwrdict[name][1]) for name in acwrdict.keys()]
+    data = [Storage(name=name,
+                    mu=acwrdict[name][0],
+                    sigma=acwrdict[name][1],
+                    color=acwrdict[name][2],
+                    cardtype=acwrdict[name][3],
+                    cmc=acwrdict[name][4]) for name in acwrdict.keys()]
     data.sort(key=lambda x: x.mu, reverse=True)
 
     return data

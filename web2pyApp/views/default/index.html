@@ -1,30 +1,45 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,True}}
 {{extend 'layout.html'}}
 
+
 {{def trunc(f, n):
     '''Truncates/pads a float f to n decimal places without rounding'''
     return ('%.*f' % (n + 1, f))[:-1]
 }}
 
-<p>Keeping it simple for now...</p>
+{{top_cards = cards[0:num_top_cards]}}
+{{bottom_cards = cards[-num_top_cards:]}}
 
-tables for top 10 of each color + colorless -- pending inclusion of Color as a field
+{{if request.vars.color is None:}}
+    {{color_name = 'All cards'}}
+{{else:}}
+    {{color_name = request.vars.color.title()}}
+{{pass}}
+
 
 <p><b>Showing data for {{=draft_count}} drafts</b></p>
 
-<h3>Top Cards &mdash; All Colors</h3>
+<h3>{{=color_name}} {{="({0})".format(len(cards))}}</h3>
 <table>
   {{for ix, card in enumerate(top_cards):}}
       {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
   {{pass}}
-</table>
 
-<h3>Bottom Cards &mdash; All Colors</h3>
-<table>
-  {{for ix, card in enumerate(bottom_cards):}}
-      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
+  {{if len(cards) > num_top_cards:}}
+      {{=TR(TD(), TD('...'))}}
+
+      {{for ix, card in enumerate(bottom_cards):}}
+          {{=TR(TD(len(cards)-(len(bottom_cards)-ix)+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
+      {{pass}}
   {{pass}}
 </table>
+
+<hr>
+
+<h3 id="graphHeader">{{=color_name}}</h3>
+<canvas id="myChart" width="400" height="400"></canvas>
+
+<hr>
 
 <h3>Untouched Cards</h3>
 <table>
@@ -33,16 +48,33 @@ tables for top 10 of each color + colorless -- pending inclusion of Color as a f
   {{pass}}
 </table>
 
-<h3>Graphs</h3>
-
-<p>Mu's for Top Cards &mdash; error bars for 3-sigma</p>
-<canvas id="myChart" width="400" height="400"></canvas>
-
 
 {{block right_sidebar}}
-<p>right sidebar</p>
+<center><h3>Choose:</h3></center>
+<img src="{{=URL('static', 'images/colormap.png')}}" style="width:200px; height:200px; min-width:200px;" usemap="#colormap">
+<map name="colormap">
+  <area shape="rect" coords="0,0,40,40" title="All Colors" href="?">
+  <area shape="rect" coords="40,0,80,40" title="White" href="?color=WHITE">
+  <area shape="rect" coords="80,0,120,40" title="Blue" href="?color=BLUE">
+  <area shape="rect" coords="120,0,160,40" title="Black" href="?color=BLACK">
+  <area shape="rect" coords="160,0,200,40" title="Red" href="?color=RED">
+  <area shape="rect" coords="0,40,40,80" title="Green" href="?color=GREEN">
+  <area shape="rect" coords="40,40,80,80" title="GW" href="?color=SELESNYA">
+  <area shape="rect" coords="80,40,120,80" title="GU" href="?color=SIMIC">
+  <area shape="rect" coords="120,40,160,80" title="BG" href="?color=GOLGARI">
+  <area shape="rect" coords="160,40,200,80" title="RG" href="?color=GRUUL">
+  <area shape="rect" coords="0,80,40,120" title="Red" href="?color=RED">
+  <area shape="rect" coords="40,80,80,120" title="RW" href="?color=BOROS">
+  <area shape="rect" coords="80,80,120,120" title="UR" href="?color=IZZET">
+  <area shape="rect" coords="120,80,160,120" title="BR" href="?color=RAKDOS">
+  <area shape="rect" coords="0,120,40,160" title="Black" href="?color=BLACK">
+  <area shape="rect" coords="40,120,80,160" title="WB" href="?color=ORZHOV">
+  <area shape="rect" coords="80,120,120,160" title="UB" href="?color=DIMIR">
+  <area shape="rect" coords="0,160,40,200" title="Blue" href="?color=BLUE">
+  <area shape="rect" coords="40,160,80,200" title="WU" href="?color=AZORIUS">
+  <area shape="rect" coords="160,160,200,200" title="Colorless" href="?color=COLOURLESS">    
+</map>
 {{end}}
-
 
 <script src="{{=URL('static', 'js/Chart.min.js')}}"></script>
 <script>
