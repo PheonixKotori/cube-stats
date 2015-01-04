@@ -9,23 +9,40 @@ def index():
     """Main page."""
     num_top_cards = 12  # How many cards make up the top
     color = request.vars.color
-
+    cardtype = request.vars.cardtype
+    cmc = request.vars.cmc
 
     snapshot = take_snapshot(None)
 
     if color is None:
-        cards = snapshot
+        if cardtype is None:
+            if cmc is None:
+                cards = snapshot
+                group_name = 'All cards'
+            else:
+                if cmc == "6":
+                    cards = filter(lambda x: int(x.cmc) >= 6, snapshot)
+                    group_name = 'CMC >= 6'
+                else:
+                    cards = filter(lambda x: str(x.cmc) == str(cmc), snapshot)
+                    group_name = 'CMC = {0}'.format(cmc)
+        else:
+            cards = filter(lambda x: cardtype in x.cardtype, snapshot)
+            group_name = 'Cardtype = {0}'.format(cardtype.title())
     elif color == "MULTI":
         cards = filter(lambda x: x.color not in (
             'WHITE', 'BLUE', 'BLACK', 'RED', 'GREEN', 'COLOURLESS'), snapshot)
+        group_name = color.title()
     else:
         cards = filter(lambda x: x.color == color, snapshot)
+        group_name = color.title()
 
     draft_count = count_drafts_in_snapshot(None)
 
     untouched_cards = [c for c in snapshot if c.mu == 25]
 
     return dict(cards=cards,
+                group_name=group_name,
                 num_top_cards=num_top_cards,
                 cube_size=len(snapshot),
                 draft_count=draft_count,

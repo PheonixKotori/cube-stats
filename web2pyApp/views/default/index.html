@@ -10,16 +10,9 @@
 {{top_cards = cards[0:num_top_cards]}}
 {{bottom_cards = cards[-num_top_cards:]}}
 
-{{if request.vars.color is None:}}
-    {{color_name = 'All cards'}}
-{{else:}}
-    {{color_name = request.vars.color.title()}}
-{{pass}}
-
-
 <p><b>Showing data for {{=draft_count}} drafts</b></p>
 
-<h3>{{=color_name}} {{="({0})".format(len(cards))}}</h3>
+<h3>{{=group_name}} {{="({0})".format(len(cards))}}</h3>
 <table>
   {{for ix, card in enumerate(top_cards):}}
       {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
@@ -36,7 +29,7 @@
 
 <hr>
 
-<h3 id="graphHeader">{{=color_name}}</h3>
+<h3 id="graphHeader">{{=group_name}}</h3>
 <canvas id="myChart" width="400" height="400"></canvas>
 
 <hr>
@@ -50,7 +43,7 @@
 
 
 {{block right_sidebar}}
-<center><h3>Choose:</h3></center>
+<h3>Choose:</h3>
 <img src="{{=URL('static', 'images/colormap.png')}}" style="width:200px; height:200px; min-width:200px;" usemap="#colormap">
 <map name="colormap">
   <area shape="rect" coords="0,0,40,40" title="All Colors" href="?">
@@ -74,6 +67,27 @@
   <area shape="rect" coords="40,160,80,200" title="WU" href="?color=AZORIUS">
   <area shape="rect" coords="160,160,200,200" title="Colorless" href="?color=COLOURLESS">    
 </map>
+
+<hr>
+
+<a href="?cardtype=ARTIFACT"><button>Artifact</button></a>
+<a href="?cardtype=CREATURE"><button>Creature</button></a>
+<a href="?cardtype=ENCHANTMENT"><button>Enchantment</button></a>
+<a href="?cardtype=INSTANT"><button>Instant</button></a>
+<a href="?cardtype=LAND"><button>Land</button></a>
+<a href="?cardtype=PLANESWALKER"><button>Planeswalker</button></a>
+<a href="?cardtype=SORCERY"><button>Sorcery</button></a>
+
+<hr>
+
+<a href="?cmc=0"><button>CMC 0</button></a>
+<a href="?cmc=1"><button>CMC 1</button></a>
+<a href="?cmc=2"><button>CMC 2</button></a>
+<a href="?cmc=3"><button>CMC 3</button></a>
+<a href="?cmc=4"><button>CMC 4</button></a>
+<a href="?cmc=5"><button>CMC 5</button></a>
+<a href="?cmc=6"><button>CMC 6+</button></a>
+
 {{end}}
 
 <script src="{{=URL('static', 'js/Chart.min.js')}}"></script>
