@@ -7,27 +7,30 @@
     return ('%.*f' % (n + 1, f))[:-1]
 }}
 
-{{top_cards = cards[0:num_top_cards]}}
-{{bottom_cards = cards[-num_top_cards:]}}
 
 <p><b>Showing data for {{=draft_count}} drafts</b></p>
 
+<div style="display:inline-block;">
 <h3>{{=group_name}} {{="({0})".format(len(cards))}}</h3>
+
+{{for x in cards:}}
+  {{x.val = x.mu - 3 * x.sigma }}
+{{pass}}
+
+{{cards.sort(key=lambda x: -x.val)}}
+
 <table>
-  {{for ix, card in enumerate(top_cards):}}
-      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
-  {{pass}}
-
-  {{if len(cards) > num_top_cards:}}
-      {{=TR(TD(), TD('...'))}}
-
-      {{for ix, card in enumerate(bottom_cards):}}
-          {{=TR(TD(len(cards)-(len(bottom_cards)-ix)+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
-      {{pass}}
+  {{=TR(*map(lambda x: TH(x), ['Rank', 'Name', 'Level', 'Sigma']))}}
+  {{for ix, card in enumerate(cards):}}
+      {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.val, 2)), TD(trunc(card.sigma, 2)))}}
   {{pass}}
 </table>
+</div>
 
-<hr>
+<div style="display:inline-block; width: 30px;">
+&nbsp;
+</div>
+
 
 <h3 id="graphHeader">{{=group_name}}</h3>
 <canvas id="myChart" width="400" height="400"></canvas>
@@ -38,6 +41,9 @@
 <table>
   {{for ix, card in enumerate(untouched_cards):}}
       {{=TR(TD(ix+1), TD(card.name), TD(trunc(card.mu, 2)), TD(trunc(card.sigma, 2)))}}
+  {{pass}}
+  {{if len(untouched_cards) == 0:}}
+    {{=H3("It's too late, you've seen everything.")}}
   {{pass}}
 </table>
 
@@ -93,7 +99,7 @@
 <script src="{{=URL('static', 'js/Chart.min.js')}}"></script>
 <script>
 var data = {
-  labels: {{=XML([card.name for card in top_cards])  }},
+  labels: {{=XML([card.name for card in cards[:25]])  }},
   datasets: [
   {
     label: "Mu's for Top Cards",
@@ -105,8 +111,8 @@ var data = {
     errorStrokeColor: "rgba(0,220,220,1)",
     pointDotRadius: 5,
     bezierCurve: false,
-    data: {{=XML([card.mu for card in top_cards])}},
-    error: {{=XML([card.sigma * 3 for card in top_cards])}},
+    data: {{=XML([card.mu for card in cards[:25]])}},
+    error: {{=XML([card.sigma * 3 for card in cards[:25]])}},
   }]
 
 };

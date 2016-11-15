@@ -7,11 +7,9 @@ DEFAULT_SIGMA = 25.0/3
 
 def index():
     """Main page."""
-    num_top_cards = 12  # How many cards make up the top
     color = request.vars.color
     cardtype = request.vars.cardtype
     cmc = request.vars.cmc
-
     snapshot = take_snapshot(None)
 
     if color is None:
@@ -43,7 +41,6 @@ def index():
 
     return dict(cards=cards,
                 group_name=group_name,
-                num_top_cards=num_top_cards,
                 cube_size=len(snapshot),
                 draft_count=draft_count,
                 untouched_cards=untouched_cards
@@ -76,11 +73,11 @@ def take_snapshot(timestamp=None):
     if timestamp is None:
         timestamp = db(db.Transactions.id > 0).select(
             db.Transactions.timestamp,
-            orderby=~db.Transactions.timestamp,
-            limitby=(0,1)).first()#.timestamp
+            orderby=db.Transactions.timestamp, ## put ~ before db to restore to "now"
+            limitby=(0,1)).first().timestamp
 
-    # TODO make use of timestamp arg
-    active_cards_with_ratings = db(db.Cards.Quantity > 0).select(
+    active_cards_with_ratings = db((db.Cards.Quantity > 0) &
+                                   (db.Transactions.timestamp >= timestamp)).select(
         db.Cards.Name, db.Cards.Color, db.Cards.Cardtype, db.Cards.CMC,
         db.Transactions.mu.coalesce(DEFAULT_MU).with_alias('mu'),
         db.Transactions.sigma.coalesce(DEFAULT_SIGMA).with_alias('sigma'),
